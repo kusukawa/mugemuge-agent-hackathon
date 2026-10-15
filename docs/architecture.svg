@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" font-family="'Noto Sans CJK JP','Noto Sans JP','Hiragino Sans',sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b3b3b"/>
+    </marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b8860b"/>
+    </marker>
+    <style>
+      .box{fill:#fff;stroke:#3b3b3b;stroke-width:2}
+      .t{font-size:22px;font-weight:700;fill:#1d1d1f}
+      .s{font-size:16px;fill:#3b3b3b}
+      .m{font-size:14px;fill:#6b6b70}
+      .key{font-size:15px;font-weight:700;fill:#8a5a00}
+      .ln{stroke:#3b3b3b;stroke-width:2.2;fill:none}
+      .gl{stroke:#b8860b;stroke-width:3;fill:none;stroke-dasharray:8 5}
+      .lab{font-size:14px;fill:#1d1d1f}
+      .num{font-size:15px;font-weight:700;fill:#fff}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#f6f5f2"/>
+  <text x="40" y="52" font-size="30" font-weight="800" fill="#1d1d1f">むげむげ — 卓上の実験助手エージェント</text>
+  <text x="40" y="84" class="s">エージェントは宣言的な操作を「提案」するだけ。実行してよいかは Pi 上のデーモンがマニフェストで決め、危ない操作は人の署名つき承認がないと動かない</text>
+
+  <!-- 人 -->
+  <rect x="40" y="150" width="230" height="300" rx="14" class="box"/>
+  <text x="155" y="190" text-anchor="middle" class="t">ブラウザ</text>
+  <text x="60" y="226" class="s">・チャットで依頼</text>
+  <text x="60" y="252" class="s">・承認カードで承認／却下</text>
+  <text x="60" y="278" class="s">・記録ページ（グラフ・</text>
+  <text x="60" y="300" class="s">　写真・CSV）</text>
+  <text x="60" y="326" class="s">・非常停止ボタン</text>
+  <text x="60" y="362" class="m">審査員は test アカウントで</text>
+  <text x="60" y="382" class="m">自分専用の仮想デバイスを</text>
+  <text x="60" y="402" class="m">作って試せる</text>
+
+  <!-- Google Cloud -->
+  <rect x="320" y="120" width="860" height="740" rx="18" fill="#eaf1fb" stroke="#4a7bd0" stroke-width="2"/>
+  <text x="340" y="152" font-size="20" font-weight="700" fill="#2b5aa8">Google Cloud（asia-northeast1）</text>
+
+  <!-- Web/API -->
+  <rect x="350" y="175" width="370" height="185" rx="14" class="box"/>
+  <text x="370" y="208" class="t">Web/API（Cloud Run）</text>
+  <text x="370" y="236" class="s">ログイン・チャット・承認カード・記録ページ</text>
+  <text x="370" y="261" class="s">承認カードは「デバイスが返した要求」だけ</text>
+  <text x="370" y="286" class="s">（40ピンの場所・部品・操作の意味を添える）</text>
+  <rect x="368" y="302" width="334" height="44" rx="8" fill="#fff4d6" stroke="#b8860b"/>
+  <text x="380" y="330" class="key">鍵: 承認の Ed25519 秘密鍵はここだけ</text>
+
+  <!-- Agent -->
+  <rect x="350" y="400" width="370" height="200" rx="14" class="box"/>
+  <text x="370" y="433" class="t">Agent（Cloud Run・ADK）</text>
+  <text x="370" y="461" class="s">Gemini 3.5 Flash（Vertex AI）で推論</text>
+  <text x="370" y="486" class="s">ツール＝宣言的な op（scan・read・bind・</text>
+  <text x="370" y="510" class="s">sample・log・camera…）。コードは送らない</text>
+  <text x="370" y="535" class="s">部品カタログで同定 → 実際に読んで確かめる</text>
+  <text x="370" y="560" class="s">承認待ちで止まり、承認で自動再開</text>
+  <text x="370" y="585" class="m">鍵を持たない（承認を作れない）</text>
+
+  <!-- Gateway -->
+  <rect x="780" y="300" width="370" height="200" rx="14" class="box"/>
+  <text x="800" y="333" class="t">Gateway（Cloud Run）</text>
+  <text x="800" y="361" class="s">デバイスとの WebSocket（Pi から張る）</text>
+  <text x="800" y="386" class="s">exec の中継・デバイスの要求を記録</text>
+  <text x="800" y="411" class="s">記録のバッチ → Firestore（ack）</text>
+  <text x="800" y="436" class="s">写真の断片を組み立て → Cloud Storage</text>
+  <text x="800" y="461" class="s">世代交代で切れ目なく引き継ぐ</text>
+  <text x="800" y="486" class="m">承認の判定はしない（写しだけ）</text>
+
+  <!-- 仮想デバイス -->
+  <rect x="780" y="175" width="370" height="95" rx="14" class="box" stroke-dasharray="6 4"/>
+  <text x="800" y="207" class="t">仮想デバイス（Cloud Run）</text>
+  <text x="800" y="234" class="s">本物と同じデーモン＋模擬センサ</text>
+  <text x="800" y="257" class="m">ブラウザのセッションごとに1台・60分</text>
+
+  <!-- データ -->
+  <rect x="350" y="640" width="800" height="200" rx="14" fill="#fff" stroke="#9db3d8" stroke-width="2"/>
+  <text x="370" y="672" font-size="18" font-weight="700" fill="#2b5aa8">保管と可観測性</text>
+  <text x="370" y="704" class="s">Firestore: デバイスの状態・承認待ち・記録のバッチ・イベント</text>
+  <text x="370" y="730" class="s">Cloud Storage: 写真（90日で自動削除）</text>
+  <text x="370" y="756" class="s">Secret Manager: 署名鍵・ログイン情報（Web/API の SA だけが読める）</text>
+  <text x="370" y="782" class="s">Cloud Trace: 推論 → ツール → Gateway → デバイスを1本のトレースに。判定（allow/approved/deny）と</text>
+  <text x="370" y="806" class="s">　ルールがスパンに載り、Pi の監査ログ（ハッシュ連鎖）にも同じ traceparent が残る</text>
+
+  <!-- Raspberry Pi -->
+  <rect x="1230" y="150" width="330" height="560" rx="18" fill="#e9f5ee" stroke="#2f6f4f" stroke-width="2.5"/>
+  <text x="1250" y="186" font-size="22" font-weight="800" fill="#1f5a3c">Raspberry Pi（机の上）</text>
+  <text x="1250" y="212" class="s">mugemuge-agentd（低権限ユーザー）</text>
+  <rect x="1248" y="228" width="294" height="190" rx="10" class="box"/>
+  <text x="1262" y="256" font-size="17" font-weight="700" fill="#1d1d1f">ゲート（最終判断者）</text>
+  <text x="1262" y="282" class="s">マニフェスト（Pi 上のファイル。</text>
+  <text x="1262" y="304" class="s">リモートから変えられない）で</text>
+  <text x="1262" y="328" class="s">allow / approval / deny、既定は拒否</text>
+  <text x="1262" y="354" class="s">承認の署名を公開鍵で検証</text>
+  <text x="1262" y="378" class="s">（セッションと引数に縛る）</text>
+  <text x="1262" y="402" class="s">レート上限・承認は deny を覆せない</text>
+  <text x="1262" y="446" class="s">・デッドマン（通信断で出力を戻す）</text>
+  <text x="1262" y="472" class="s">・非常停止（ディスクにラッチ）</text>
+  <text x="1262" y="498" class="s">・記録は spool に貯めて再送</text>
+  <text x="1262" y="524" class="s">・監査ログ（ハッシュ連鎖）</text>
+  <rect x="1248" y="548" width="294" height="144" rx="10" fill="#fff" stroke="#2f6f4f"/>
+  <text x="1262" y="576" font-size="17" font-weight="700" fill="#1d1d1f">つないだもの</text>
+  <text x="1262" y="602" class="s">Grove I2C センサ</text>
+  <text x="1262" y="626" class="s">（BMP280・SHT30 など）</text>
+  <text x="1262" y="650" class="s">GPIO（リレー・ボタン）</text>
+  <text x="1262" y="674" class="s">USB カメラ</text>
+
+  <!-- 矢印 -->
+  <path d="M270 260 L350 260" class="ln" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="276" y="250" class="lab">HTTPS</text>
+  <path d="M535 360 L535 400" class="ln" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="545" y="386" class="lab">IAM（ID トークン）</text>
+  <path d="M720 500 L780 450" class="ln" marker-end="url(#a)"/>
+  <text x="790" y="524" class="lab">↖ exec（op＋引数）</text>
+  <path d="M720 300 L780 340" class="ln" marker-end="url(#a)"/>
+  <text x="726" y="296" class="lab">承認つき送信</text>
+  <path d="M1230 400 L1150 400" class="ln" marker-end="url(#a)" marker-start="url(#a)"/>
+  <text x="1160" y="390" class="lab">WSS</text>
+  <path d="M965 270 L965 300" class="ln" marker-end="url(#a)"/>
+  <text x="975" y="291" class="lab">WSS</text>
+
+  <!-- 承認の流れ -->
+  <path d="M1250 410 C 1210 600, 760 620, 720 340" class="gl" marker-end="url(#g)"/>
+  <text x="800" y="584" font-size="15" font-weight="700" fill="#8a5a00">承認が要る操作: デバイスが要求を返す</text>
+  <text x="800" y="604" font-size="15" font-weight="700" fill="#8a5a00">→ 人がカードで承認 → Web/API が署名</text>
+  <text x="800" y="624" font-size="15" font-weight="700" fill="#8a5a00">→ デバイスが署名を検証して実行</text>
+</svg>

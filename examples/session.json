@@ -1,0 +1,1035 @@
+[
+  {
+    "dir": "device→gateway",
+    "note": "接続直後。マニフェスト全文と状態を申告する",
+    "msg": {
+      "v": 1,
+      "type": "hello",
+      "id": "h-01J9Z6Q3V8H4",
+      "ts": 1759581000000,
+      "device_id": "pi-desk-01",
+      "agent": {
+        "name": "mugemuge-agentd",
+        "version": "0.1.0"
+      },
+      "protocols": [
+        1
+      ],
+      "boot_id": "b7c1e2d3-0f4a-4b5c-8d6e-7f8091a2b3c4",
+      "manifest": {
+        "manifest_version": 1,
+        "device": {
+          "id": "pi-desk-01",
+          "name": "卓上むげむげ1号",
+          "board": "raspberry-pi-zero-2-w",
+          "hat": "none"
+        },
+        "link": {
+          "gateway_url": "wss://mugemuge-gateway-xxxxxxxx-an.a.run.app/v1/device",
+          "token_file": "/etc/mugemuge/device.token"
+        },
+        "approval": {
+          "max_ttl_s": 300,
+          "scheme": "ed25519",
+          "public_keys": [
+            {
+              "kid": "api-2026-10",
+              "key": "z2wDYLxJeyBVs9gKahiOeEis3kEBAPTIqmPHI6mV4m8"
+            }
+          ]
+        },
+        "safety": {
+          "deadman_ms": 10000,
+          "estop_clear": "approval"
+        },
+        "limits": {
+          "exec_per_s": 20,
+          "i2c_read_per_s": 200,
+          "i2c_write_per_s": 20,
+          "gpio_write_per_s": 5,
+          "display_per_s": 2,
+          "max_read_len": 32,
+          "max_write_len": 16,
+          "queue_depth": 8
+        },
+        "sample": {
+          "min_period_ms": 10,
+          "max_duration_ms": 600000,
+          "max_reads_per_tick": 8,
+          "max_concurrent_jobs": 2
+        },
+        "i2c": {
+          "buses": [
+            {
+              "bus": 1,
+              "label": "grove-i2c",
+              "scan": {
+                "enabled": true,
+                "first": 8,
+                "last": 119,
+                "exclude": []
+              },
+              "unknown": {
+                "read": "allow",
+                "write": "approval",
+                "bind": "approval"
+              },
+              "bound": {
+                "other_write": "approval",
+                "max_write_allow_regs": 8,
+                "fingerprint_recheck_ms": 1000,
+                "allow_no_recheck": true,
+                "display": "approval"
+              },
+              "addresses": []
+            }
+          ]
+        },
+        "gpio": {
+          "chip": "gpiochip0",
+          "lines": [
+            {
+              "read": "allow",
+              "bias": "none",
+              "line": 17,
+              "label": "relay-1",
+              "direction": "output",
+              "write": "approval",
+              "safe_value": 0,
+              "max_on_ms": 2000
+            },
+            {
+              "read": "allow",
+              "bias": "pull_up",
+              "line": 27,
+              "label": "button-1",
+              "direction": "input"
+            }
+          ]
+        },
+        "camera": {
+          "devices": [
+            {
+              "max_width": 1280,
+              "max_height": 960,
+              "min_interval_ms": 2000,
+              "max_per_hour": 120,
+              "id": "cam0",
+              "kind": "usb",
+              "device": "/dev/video0",
+              "label": "卓上カメラ",
+              "capture": "approval"
+            }
+          ]
+        },
+        "log": {
+          "min_interval_ms": 1000,
+          "max_duration_ms": 604800000,
+          "min_photo_interval_ms": 60000,
+          "max_concurrent_logs": 2,
+          "spool_mb": 50,
+          "photo_max_px": 640
+        },
+        "logging": {
+          "audit_path": "/var/lib/mugemuge/audit.jsonl",
+          "audit_max_mb": 20
+        }
+      },
+      "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0",
+      "state": {
+        "estop": false,
+        "bindings": [],
+        "jobs": [],
+        "outputs": [
+          {
+            "line": 17,
+            "value": 0
+          }
+        ]
+      }
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "セッションIDと心拍間隔を伝える",
+    "msg": {
+      "v": 1,
+      "type": "welcome",
+      "id": "w-01J9Z6Q3V8H5",
+      "ts": 1759581000040,
+      "re": "h-01J9Z6Q3V8H4",
+      "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+      "protocol": 1,
+      "heartbeat_ms": 3000,
+      "server_ts": 1759581000040
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "心拍（3秒ごと）",
+    "msg": {
+      "v": 1,
+      "type": "ping",
+      "id": "p-0001",
+      "ts": 1759581003040
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "心拍への応答",
+    "msg": {
+      "v": 1,
+      "type": "pong",
+      "id": "q-0001",
+      "ts": 1759581003046,
+      "re": "p-0001"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "「何がつながってる？」→ まずスキャン",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0001-10000",
+      "ts": 1759581010000,
+      "op": "i2c.scan",
+      "args": {
+        "bus": 1
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0001",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000001-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ allow",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0001-10000",
+      "ts": 1759581010039,
+      "re": "x-0001-10000",
+      "ok": true,
+      "data": {
+        "bus": 1,
+        "found": [
+          64,
+          118
+        ],
+        "method": "read_byte"
+      },
+      "policy": {
+        "decision": "allow",
+        "rule": "i2c.bus1.scan",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 38,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000001-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "0x40 の候補（INA226/INA219/HDC1080…）を絞るため製造者IDを読む",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0002-12000",
+      "ts": 1759581012000,
+      "op": "i2c.read",
+      "args": {
+        "bus": 1,
+        "addr": 64,
+        "reg": 254,
+        "len": 2
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0002",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000002-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ allow",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0002-12000",
+      "ts": 1759581012004,
+      "re": "x-0002-12000",
+      "ok": true,
+      "data": {
+        "hex": "5449"
+      },
+      "policy": {
+        "decision": "allow",
+        "rule": "i2c.bus1.unknown.read",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 3,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000002-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "TI だったのでダイIDを読む（0x2260 なら INA226）",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0003-14000",
+      "ts": 1759581014000,
+      "op": "i2c.read",
+      "args": {
+        "bus": 1,
+        "addr": 64,
+        "reg": 255,
+        "len": 2
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0003",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000003-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ allow",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0003-14000",
+      "ts": 1759581014004,
+      "re": "x-0003-14000",
+      "ok": true,
+      "data": {
+        "hex": "2260"
+      },
+      "policy": {
+        "decision": "allow",
+        "rule": "i2c.bus1.unknown.read",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 3,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000003-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "同定が確定したのでバインドを求める（未知アドレスのバインドは承認が必要）",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0004-16000",
+      "ts": 1759581016000,
+      "op": "i2c.bind",
+      "args": {
+        "bus": 1,
+        "addr": 64,
+        "part": "INA226",
+        "fingerprint": {
+          "reg": 254,
+          "len": 2,
+          "hex": "5449"
+        },
+        "write_allow_regs": [
+          0,
+          5
+        ]
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0004",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000004-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ approval_required",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0004-16000",
+      "ts": 1759581016004,
+      "re": "x-0004-16000",
+      "ok": false,
+      "error": {
+        "code": "approval_required",
+        "message": "i2c.bind requires approval (i2c.bus1.unknown.bind)",
+        "request": {
+          "device_id": "pi-desk-01",
+          "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+          "op": "i2c.bind",
+          "args": {
+            "bus": 1,
+            "addr": 64,
+            "part": "INA226",
+            "fingerprint": {
+              "reg": 254,
+              "len": 2,
+              "hex": "5449"
+            },
+            "write_allow_regs": [
+              0,
+              5
+            ]
+          },
+          "args_sha256": "66c13500a12d3fbf6c30fcdf7647d5408dffcdd859708563093a71fd8e17556c",
+          "rule": "i2c.bus1.unknown.bind",
+          "summary": "bus1 0x40 を INA226 として扱う（自動で書き込めるレジスタ: 0x00, 0x05）"
+        }
+      },
+      "policy": {
+        "decision": "approval_required",
+        "rule": "i2c.bus1.unknown.bind",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000004-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "人が承認カードで許可 → Web/API が署名したグラントを付けて再送",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0005-31000",
+      "ts": 1759581031000,
+      "op": "i2c.bind",
+      "args": {
+        "bus": 1,
+        "addr": 64,
+        "part": "INA226",
+        "fingerprint": {
+          "reg": 254,
+          "len": 2,
+          "hex": "5449"
+        },
+        "write_allow_regs": [
+          0,
+          5
+        ]
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0005",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000005-01",
+      "deadline_ms": 2000,
+      "approval": {
+        "grant_id": "apg_01J9Z8K4M6N8P0Q2R4S6T8V0W2",
+        "kid": "api-2026-10",
+        "device_id": "pi-desk-01",
+        "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+        "op": "i2c.bind",
+        "args_sha256": "66c13500a12d3fbf6c30fcdf7647d5408dffcdd859708563093a71fd8e17556c",
+        "approved_by": "user:kusukawa",
+        "iat": 1759581030,
+        "exp": 1759581330,
+        "sig": "A2rYaMRwdS1G4J776cD1Bt3Q9C04Yw2ttJ6SHNKdOlGgn0EOcqiiWfsyhCPbxmLM1ZH96esLrb5qQBAaLnlTCw"
+      }
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ approved",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0005-31000",
+      "ts": 1759581031005,
+      "re": "x-0005-31000",
+      "ok": true,
+      "data": {
+        "bound": true
+      },
+      "policy": {
+        "decision": "approved",
+        "rule": "i2c.bus1.unknown.bind",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 4,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000005-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "校正レジスタ 0x05 に書き込む（バインドの write_allow_regs なので自動）",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0006-31500",
+      "ts": 1759581031500,
+      "op": "i2c.write",
+      "args": {
+        "bus": 1,
+        "addr": 64,
+        "reg": 5,
+        "hex": "0a00"
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0006",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000006-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ allow",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0006-31500",
+      "ts": 1759581031504,
+      "re": "x-0006-31500",
+      "ok": true,
+      "data": {
+        "written": 2
+      },
+      "policy": {
+        "decision": "allow",
+        "rule": "i2c.bus1.bound.write",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 3,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000006-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "「電流を10秒測ってグラフにして」→ 宣言的な計測ジョブ",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0007-32000",
+      "ts": 1759581032000,
+      "op": "sample.start",
+      "args": {
+        "period_ms": 100,
+        "duration_ms": 10000,
+        "batch_ms": 1000,
+        "reads": [
+          {
+            "name": "bus_v",
+            "bus": 1,
+            "addr": 64,
+            "reg": 2,
+            "len": 2
+          },
+          {
+            "name": "current",
+            "bus": 1,
+            "addr": 64,
+            "reg": 4,
+            "len": 2
+          }
+        ]
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0007",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000007-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ allow",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0007-32000",
+      "ts": 1759581032004,
+      "re": "x-0007-32000",
+      "ok": true,
+      "data": {
+        "job_id": "job_1",
+        "columns": [
+          "t_ms",
+          "bus_v",
+          "current"
+        ],
+        "started_ts": 1759581032004
+      },
+      "policy": {
+        "decision": "allow",
+        "rule": "sample.start",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 3,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000007-01"
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "1秒ごとにまとめて送る（10行のうち先頭3行だけ示す）",
+    "msg": {
+      "v": 1,
+      "type": "samples",
+      "id": "s-0001",
+      "ts": 1759581033004,
+      "job_id": "job_1",
+      "seq": 0,
+      "rows": [
+        [
+          0,
+          "0a14",
+          "04b0"
+        ],
+        [
+          100,
+          "0a14",
+          "04b2"
+        ],
+        [
+          200,
+          null,
+          "04b1"
+        ]
+      ],
+      "errors": 1
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "ジョブ完了",
+    "msg": {
+      "v": 1,
+      "type": "event",
+      "id": "e-0001",
+      "ts": 1759581042005,
+      "event": "job_end",
+      "detail": {
+        "job_id": "job_1",
+        "reason": "completed",
+        "rows": 100
+      }
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "「温度を OLED に出して」→ 0x3C を SH1107 として登録（承認が必要）",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0008-47000",
+      "ts": 1759581047000,
+      "op": "i2c.bind",
+      "args": {
+        "bus": 1,
+        "addr": 60,
+        "part": "SH1107",
+        "fingerprint": {
+          "reg": 0,
+          "len": 1,
+          "hex": "40",
+          "recheck": false
+        },
+        "write_allow_regs": []
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0008",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000008-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ approval_required",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0008-47000",
+      "ts": 1759581047004,
+      "re": "x-0008-47000",
+      "ok": false,
+      "error": {
+        "code": "approval_required",
+        "message": "i2c.bind requires approval (i2c.bus1.unknown.bind)",
+        "request": {
+          "device_id": "pi-desk-01",
+          "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+          "op": "i2c.bind",
+          "args": {
+            "bus": 1,
+            "addr": 60,
+            "part": "SH1107",
+            "fingerprint": {
+              "reg": 0,
+              "len": 1,
+              "hex": "40",
+              "recheck": false
+            },
+            "write_allow_regs": []
+          },
+          "args_sha256": "a5683534979713853f36ba1ba2cabc13024c1e4d31bb70e4eaa6b1ea3de14285",
+          "rule": "i2c.bus1.unknown.bind",
+          "summary": "bus1 0x3c を SH1107 として扱う（自動で書き込めるレジスタ: なし。書き込み前の指紋の確認をしない）"
+        }
+      },
+      "policy": {
+        "decision": "approval_required",
+        "rule": "i2c.bus1.unknown.bind",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000008-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "承認されて登録",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0009-55000",
+      "ts": 1759581055000,
+      "op": "i2c.bind",
+      "args": {
+        "bus": 1,
+        "addr": 60,
+        "part": "SH1107",
+        "fingerprint": {
+          "reg": 0,
+          "len": 1,
+          "hex": "40",
+          "recheck": false
+        },
+        "write_allow_regs": []
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0009",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000009-01",
+      "deadline_ms": 2000,
+      "approval": {
+        "grant_id": "apg_01J9Z8K4M6N8P0Q2R4S6T8V000",
+        "kid": "api-2026-10",
+        "device_id": "pi-desk-01",
+        "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+        "op": "i2c.bind",
+        "args_sha256": "a5683534979713853f36ba1ba2cabc13024c1e4d31bb70e4eaa6b1ea3de14285",
+        "approved_by": "user:kusukawa",
+        "iat": 1759581054,
+        "exp": 1759581354,
+        "sig": "5SBZ1X3N09TLyCBVxXE_NuRVUQ9w31GXwUFLH2ntyG0eG7V5d5nI_Aa4xR6YBrlbYPr_gs1t3UBNh66oVRkcDw"
+      }
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ approved",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0009-55000",
+      "ts": 1759581055004,
+      "re": "x-0009-55000",
+      "ok": true,
+      "data": {
+        "bound": true
+      },
+      "policy": {
+        "decision": "approved",
+        "rule": "i2c.bus1.unknown.bind",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "duration_ms": 3,
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000009-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "表示の内容だけを送る（描画と書き込みはデバイス）。このマニフェストは bound.display: approval",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0010-56000",
+      "ts": 1759581056000,
+      "op": "display.draw",
+      "args": {
+        "bus": 1,
+        "addr": 60,
+        "items": [
+          {
+            "text": "12.0 V",
+            "x": 0,
+            "y": 0,
+            "size": 2
+          },
+          {
+            "text": "1.20 A",
+            "x": 0,
+            "y": 24,
+            "size": 2
+          }
+        ]
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0010",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000a-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ approval_required",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0010-56000",
+      "ts": 1759581056004,
+      "re": "x-0010-56000",
+      "ok": false,
+      "error": {
+        "code": "approval_required",
+        "message": "display.draw requires approval (i2c.bus1.bound.display)",
+        "request": {
+          "device_id": "pi-desk-01",
+          "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+          "op": "display.draw",
+          "args": {
+            "bus": 1,
+            "addr": 60,
+            "items": [
+              {
+                "text": "12.0 V",
+                "x": 0,
+                "y": 0,
+                "size": 2
+              },
+              {
+                "text": "1.20 A",
+                "x": 0,
+                "y": 24,
+                "size": 2
+              }
+            ]
+          },
+          "args_sha256": "7fd8cee286b9ac453ce89ff4fe2350e433ab2b1ad60725ddd606f155fbb93946",
+          "rule": "i2c.bus1.bound.display",
+          "summary": "bus1 0x3c（SH1107）の画面に表示する: 12.0 V / 1.20 A"
+        }
+      },
+      "policy": {
+        "decision": "approval_required",
+        "rule": "i2c.bus1.bound.display",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000a-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "承認されて描画（初期化と16ページ分の書き込みをデバイスが行う）",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0011-61000",
+      "ts": 1759581061000,
+      "op": "display.draw",
+      "args": {
+        "bus": 1,
+        "addr": 60,
+        "items": [
+          {
+            "text": "12.0 V",
+            "x": 0,
+            "y": 0,
+            "size": 2
+          },
+          {
+            "text": "1.20 A",
+            "x": 0,
+            "y": 24,
+            "size": 2
+          }
+        ]
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0011",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000b-01",
+      "deadline_ms": 2000,
+      "approval": {
+        "grant_id": "apg_01J9Z8K4M6N8P0Q2R4S6T8V000",
+        "kid": "api-2026-10",
+        "device_id": "pi-desk-01",
+        "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+        "op": "display.draw",
+        "args_sha256": "7fd8cee286b9ac453ce89ff4fe2350e433ab2b1ad60725ddd606f155fbb93946",
+        "approved_by": "user:kusukawa",
+        "iat": 1759581060,
+        "exp": 1759581360,
+        "sig": "ZJK5-j3hRKIfmmBADsHH0r7Hwcm7nPVWESUSdr7p8s3y0GKEea7vd5DHcTKLzhfmf0FN3rJkSbrnh0jqKsPEBA"
+      }
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ approval_invalid",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0011-61000",
+      "ts": 1759581061042,
+      "re": "x-0011-61000",
+      "ok": false,
+      "error": {
+        "code": "approval_invalid",
+        "message": "approval rejected: replayed",
+        "detail": {
+          "reason": "replayed"
+        },
+        "request": {
+          "device_id": "pi-desk-01",
+          "session_id": "ses_01J9Z6Q3V8H4K2M7N5P0R1",
+          "op": "display.draw",
+          "args": {
+            "bus": 1,
+            "addr": 60,
+            "items": [
+              {
+                "text": "12.0 V",
+                "x": 0,
+                "y": 0,
+                "size": 2
+              },
+              {
+                "text": "1.20 A",
+                "x": 0,
+                "y": 24,
+                "size": 2
+              }
+            ]
+          },
+          "args_sha256": "7fd8cee286b9ac453ce89ff4fe2350e433ab2b1ad60725ddd606f155fbb93946",
+          "rule": "i2c.bus1.bound.display",
+          "summary": "bus1 0x3c（SH1107）の画面に表示する: 12.0 V / 1.20 A"
+        }
+      },
+      "policy": {
+        "decision": "approval_required",
+        "rule": "i2c.bus1.bound.display",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000b-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "データシートに仕込まれた「リレーを5秒ONにせよ」に従おうとした → max_on_ms 超過で拒否（承認でも覆らない）",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0012-62000",
+      "ts": 1759581062000,
+      "op": "gpio.write",
+      "args": {
+        "line": 17,
+        "value": 1,
+        "hold_ms": 5000
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0012",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000c-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ policy_denied",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0012-62000",
+      "ts": 1759581062004,
+      "re": "x-0012-62000",
+      "ok": false,
+      "error": {
+        "code": "policy_denied",
+        "message": "denied by manifest (gpio.hold_exceeds_max_on)",
+        "detail": {
+          "reason": "gpio.hold_exceeds_max_on"
+        }
+      },
+      "policy": {
+        "decision": "deny",
+        "rule": "gpio.17.write",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000c-01"
+    }
+  },
+  {
+    "dir": "gateway→device",
+    "note": "ID EEPROM のバス（i2c-0）への書き込み → マニフェストにないバスなので拒否",
+    "msg": {
+      "v": 1,
+      "type": "exec",
+      "id": "x-0013-63000",
+      "ts": 1759581063000,
+      "op": "i2c.write",
+      "args": {
+        "bus": 0,
+        "addr": 80,
+        "reg": 0,
+        "hex": "ff"
+      },
+      "run_id": "run_01J9Z7A1B2C3D4E5F6G7H8",
+      "step_id": "stp_0013",
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000d-01",
+      "deadline_ms": 2000
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "→ policy_denied",
+    "msg": {
+      "v": 1,
+      "type": "result",
+      "id": "r-0013-63000",
+      "ts": 1759581063004,
+      "re": "x-0013-63000",
+      "ok": false,
+      "error": {
+        "code": "policy_denied",
+        "message": "denied by manifest (i2c.bus_not_listed)",
+        "detail": {
+          "reason": "i2c.bus_not_listed"
+        }
+      },
+      "policy": {
+        "decision": "deny",
+        "rule": "i2c.bus0",
+        "manifest_sha256": "747f760015d7596194cfd66297280cec8ed6639ba931b7faa9ed9e344d8b49d0"
+      },
+      "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-000000000000000d-01"
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "回線断から10秒。再接続後の welcome の直後に送る",
+    "msg": {
+      "v": 1,
+      "type": "event",
+      "id": "e-0002",
+      "ts": 1759581122000,
+      "event": "deadman_tripped",
+      "detail": {
+        "silent_ms": 10012,
+        "outputs_reverted": [
+          17
+        ],
+        "jobs_stopped": []
+      }
+    }
+  },
+  {
+    "dir": "device→gateway",
+    "note": "systemd による停止。出力を安全値に戻してから送る",
+    "msg": {
+      "v": 1,
+      "type": "bye",
+      "id": "b-0001",
+      "ts": 1759581182000,
+      "reason": "shutdown"
+    }
+  }
+]

@@ -1,0 +1,39 @@
+[project]
+name = "mugemuge-agentd"
+version = "0.1.0"
+description = "むげむげ デバイスプロトコル v1 の Pi 側デーモン"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6",
+    "jsonschema>=4.18",
+    "cryptography>=42",
+    "smbus2>=0.5",
+    "websockets>=13",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "httpx>=0.27"]
+hw = ["gpiod>=2.1"]          # 実機の GPIO（libgpiod v2）。--fake-hw だけなら不要
+cloud = [                    # Cloud Run の Gateway / Web/API（services/）。デーモンには不要
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.9",
+    "google-cloud-firestore>=2.16",
+    "google-cloud-storage>=2.16",
+    "google-auth>=2.30",
+    "requests>=2.31",
+    "httpx>=0.27",
+    "opentelemetry-sdk>=1.39,<=1.42.1",   # ADK が 1.42.1 以下に固定しているのに合わせる
+    "opentelemetry-exporter-gcp-trace>=1.7",
+    "google-api-core<2.41",  # 2.41 以降は opentelemetry-api>=1.44 を要求して ADK と両立しない
+]
+agent = [                    # Cloud Run の Agent サービス（services/agent/）
+    "google-adk>=2.11,<3",
+]
+
+[project.scripts]
+mugemuge-agentd = "mugemuge_agentd.__main__:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]

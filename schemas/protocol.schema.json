@@ -1,0 +1,1677 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mugemuge.dev/schemas/protocol.v1.json",
+  "title": "mugemuge device protocol v1 message",
+  "description": "Gateway と mugemuge-agentd の間で交わす WebSocket テキストフレーム1つ分",
+  "type": "object",
+  "required": [
+    "v",
+    "type",
+    "id",
+    "ts"
+  ],
+  "properties": {
+    "v": {
+      "const": 1
+    },
+    "type": {
+      "enum": [
+        "hello",
+        "welcome",
+        "ping",
+        "pong",
+        "exec",
+        "result",
+        "samples",
+        "event",
+        "bye",
+        "blob",
+        "ack"
+      ]
+    },
+    "id": {
+      "$ref": "#/$defs/msg_id"
+    },
+    "ts": {
+      "$ref": "#/$defs/unix_ms"
+    },
+    "re": {
+      "$ref": "#/$defs/msg_id"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "hello"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/hello"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "welcome"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/welcome"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "ping"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/ping"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "pong"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/pong"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "exec"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/exec"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "result"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/result"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "samples"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/samples"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "event"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "bye"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/bye"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "blob"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/blob"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "ack"
+          }
+        }
+      },
+      "then": {
+        "$ref": "#/$defs/ack"
+      }
+    }
+  ],
+  "$defs": {
+    "msg_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{4,64}$"
+    },
+    "unix_ms": {
+      "type": "integer",
+      "minimum": 1600000000000
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "hex": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{2})+$"
+    },
+    "bus": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 31
+    },
+    "i2c_addr": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 127
+    },
+    "reg": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 65535
+    },
+    "reg_width": {
+      "enum": [
+        8,
+        16
+      ]
+    },
+    "line": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 53
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "approved",
+        "approval_required",
+        "deny"
+      ]
+    },
+    "hello": {
+      "required": [
+        "device_id",
+        "agent",
+        "protocols",
+        "boot_id",
+        "manifest",
+        "manifest_sha256",
+        "state"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "re": true,
+        "device_id": {
+          "type": "string"
+        },
+        "agent": {
+          "type": "object",
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "protocols": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 1
+        },
+        "boot_id": {
+          "type": "string"
+        },
+        "manifest": {
+          "type": "object",
+          "description": "manifest.schema.json に従う"
+        },
+        "manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "state": {
+          "type": "object",
+          "required": [
+            "estop",
+            "bindings",
+            "jobs",
+            "outputs"
+          ],
+          "properties": {
+            "estop": {
+              "type": "boolean"
+            },
+            "estop_persist": {
+              "type": "boolean",
+              "description": "false なら非常停止のラッチをディスクに書けない（デバイスは非常停止をかけた状態で起動している）。書けるときは省略する"
+            },
+            "bindings": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/binding"
+              }
+            },
+            "jobs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "outputs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "line",
+                  "value"
+                ],
+                "properties": {
+                  "line": {
+                    "$ref": "#/$defs/line"
+                  },
+                  "value": {
+                    "enum": [
+                      0,
+                      1
+                    ]
+                  },
+                  "revert_at_ms": {
+                    "$ref": "#/$defs/unix_ms"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "required": [
+        "bus",
+        "addr",
+        "part",
+        "fingerprint",
+        "write_allow_regs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "$ref": "#/$defs/bus"
+        },
+        "addr": {
+          "$ref": "#/$defs/i2c_addr"
+        },
+        "part": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "fingerprint": {
+          "type": "object",
+          "required": [
+            "reg",
+            "len",
+            "hex"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "reg": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 65535
+            },
+            "len": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8
+            },
+            "hex": {
+              "$ref": "#/$defs/hex"
+            },
+            "reg_width": {
+              "enum": [
+                8,
+                16
+              ],
+              "description": "指紋のレジスタの幅。省略時は reg が 0xFF を超えれば 16"
+            },
+            "recheck": {
+              "type": "boolean",
+              "default": true,
+              "description": "バインド済みのアドレスへの書き込みの前に指紋を読み直すか。false にすると読み直さない（承認カードに明記される）"
+            }
+          }
+        },
+        "write_allow_regs": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "welcome": {
+      "required": [
+        "re",
+        "session_id",
+        "protocol",
+        "heartbeat_ms",
+        "server_ts"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "re": true,
+        "session_id": {
+          "type": "string",
+          "pattern": "^ses_[A-Za-z0-9]{8,40}$"
+        },
+        "protocol": {
+          "const": 1
+        },
+        "heartbeat_ms": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 30000
+        },
+        "server_ts": {
+          "$ref": "#/$defs/unix_ms"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ping": {
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true
+      },
+      "additionalProperties": false
+    },
+    "pong": {
+      "required": [
+        "re"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "re": true
+      },
+      "additionalProperties": false
+    },
+    "approval_grant": {
+      "type": "object",
+      "required": [
+        "grant_id",
+        "kid",
+        "device_id",
+        "session_id",
+        "op",
+        "args_sha256",
+        "approved_by",
+        "iat",
+        "exp",
+        "sig"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "grant_id": {
+          "type": "string",
+          "pattern": "^apg_[A-Za-z0-9]{8,40}$"
+        },
+        "kid": {
+          "type": "string"
+        },
+        "device_id": {
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string"
+        },
+        "args_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "approved_by": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "iat": {
+          "type": "integer"
+        },
+        "exp": {
+          "type": "integer"
+        },
+        "sig": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}(==)?$"
+        }
+      }
+    },
+    "exec": {
+      "required": [
+        "op",
+        "args",
+        "run_id",
+        "step_id"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "op": {
+          "enum": [
+            "sys.info",
+            "sys.estop",
+            "sys.estop_clear",
+            "i2c.scan",
+            "i2c.read",
+            "i2c.write",
+            "i2c.bind",
+            "i2c.unbind",
+            "display.draw",
+            "gpio.read",
+            "gpio.write",
+            "sample.start",
+            "sample.stop",
+            "camera.capture",
+            "log.start",
+            "log.stop"
+          ]
+        },
+        "args": {
+          "type": "object"
+        },
+        "run_id": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "step_id": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "traceparent": {
+          "type": "string",
+          "pattern": "^00-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$"
+        },
+        "deadline_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 60000
+        },
+        "approval": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/approval_grant"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": [
+                  "sys.info",
+                  "sys.estop",
+                  "sys.estop_clear"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_empty"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "i2c.scan"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_i2c_scan"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "i2c.read"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_i2c_read"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "i2c.write"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_i2c_write"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "i2c.bind"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/binding"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "i2c.unbind"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_i2c_target"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "gpio.read"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_gpio_read"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "gpio.write"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_gpio_write"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "sample.start"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_sample_start"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "sample.stop"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_sample_stop"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "camera.capture"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_camera_capture"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "log.start"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_log_start"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "log.stop"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_log_stop"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "const": "display.draw"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "args": {
+                "$ref": "#/$defs/args_display_draw"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "args_empty": {
+      "type": "object",
+      "maxProperties": 0
+    },
+    "args_i2c_scan": {
+      "type": "object",
+      "required": [
+        "bus"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "$ref": "#/$defs/bus"
+        }
+      }
+    },
+    "args_i2c_target": {
+      "type": "object",
+      "required": [
+        "bus",
+        "addr"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "$ref": "#/$defs/bus"
+        },
+        "addr": {
+          "$ref": "#/$defs/i2c_addr"
+        }
+      }
+    },
+    "args_i2c_read": {
+      "type": "object",
+      "required": [
+        "bus",
+        "addr",
+        "len"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "$ref": "#/$defs/bus"
+        },
+        "addr": {
+          "$ref": "#/$defs/i2c_addr"
+        },
+        "reg": {
+          "$ref": "#/$defs/reg"
+        },
+        "len": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256
+        },
+        "reg_width": {
+          "$ref": "#/$defs/reg_width"
+        }
+      }
+    },
+    "args_i2c_write": {
+      "type": "object",
+      "required": [
+        "bus",
+        "addr",
+        "reg",
+        "hex"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "$ref": "#/$defs/bus"
+        },
+        "addr": {
+          "$ref": "#/$defs/i2c_addr"
+        },
+        "reg": {
+          "$ref": "#/$defs/reg"
+        },
+        "hex": {
+          "$ref": "#/$defs/hex"
+        },
+        "reg_width": {
+          "$ref": "#/$defs/reg_width"
+        }
+      }
+    },
+    "args_gpio_read": {
+      "type": "object",
+      "required": [
+        "line"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "line": {
+          "$ref": "#/$defs/line"
+        }
+      }
+    },
+    "args_gpio_write": {
+      "type": "object",
+      "required": [
+        "line",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "line": {
+          "$ref": "#/$defs/line"
+        },
+        "value": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "hold_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        }
+      }
+    },
+    "args_sample_start": {
+      "type": "object",
+      "required": [
+        "period_ms",
+        "duration_ms",
+        "reads"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "period_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400000
+        },
+        "batch_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "reads": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "bus",
+              "addr",
+              "len"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,31}$"
+              },
+              "bus": {
+                "$ref": "#/$defs/bus"
+              },
+              "addr": {
+                "$ref": "#/$defs/i2c_addr"
+              },
+              "reg": {
+                "$ref": "#/$defs/reg"
+              },
+              "len": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 256
+              },
+              "reg_width": {
+                "$ref": "#/$defs/reg_width"
+              }
+            }
+          }
+        }
+      }
+    },
+    "args_sample_stop": {
+      "type": "object",
+      "required": [
+        "job_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "maxLength": 32
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "required": [
+        "decision",
+        "rule",
+        "manifest_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "$ref": "#/$defs/decision"
+        },
+        "rule": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "manifest_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "bad_request",
+            "unknown_op",
+            "policy_denied",
+            "approval_required",
+            "approval_invalid",
+            "rate_limited",
+            "estop_active",
+            "fingerprint_mismatch",
+            "io_error",
+            "busy",
+            "timeout",
+            "internal"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "detail": {
+          "type": "object"
+        },
+        "retry_after_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request": {
+          "type": "object",
+          "required": [
+            "device_id",
+            "session_id",
+            "op",
+            "args",
+            "args_sha256",
+            "rule",
+            "summary"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "device_id": {
+              "type": "string"
+            },
+            "session_id": {
+              "type": "string"
+            },
+            "op": {
+              "type": "string"
+            },
+            "args": {
+              "type": "object"
+            },
+            "args_sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "rule": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "const": "approval_required"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "request"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "code": {
+                "const": "rate_limited"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "retry_after_ms"
+            ]
+          }
+        }
+      ]
+    },
+    "result": {
+      "required": [
+        "re",
+        "ok",
+        "policy"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "re": true,
+        "ok": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object"
+        },
+        "error": {
+          "$ref": "#/$defs/error"
+        },
+        "policy": {
+          "$ref": "#/$defs/policy"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duplicate": {
+          "type": "boolean"
+        },
+        "traceparent": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ok": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "data"
+            ],
+            "not": {
+              "required": [
+                "error"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "error"
+            ],
+            "not": {
+              "required": [
+                "data"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "samples": {
+      "required": [
+        "job_id",
+        "seq",
+        "rows"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "job_id": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "integer",
+                "minimum": 0
+              }
+            ],
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/hex"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "photos": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": [
+              "t",
+              "blob_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "t": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "blob_id": {
+                "type": "string",
+                "pattern": "^blob_[A-Za-z0-9]{8,40}$"
+              }
+            }
+          }
+        },
+        "started_ts": {
+          "$ref": "#/$defs/unix_ms"
+        }
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "required": [
+        "event",
+        "detail"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "event": {
+          "enum": [
+            "deadman_tripped",
+            "estop_engaged",
+            "estop_cleared",
+            "output_reverted",
+            "binding_dropped",
+            "job_end",
+            "spool_photos_paused",
+            "spool_rows_dropped"
+          ]
+        },
+        "detail": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "job_end"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "required": [
+                  "job_id",
+                  "reason",
+                  "rows"
+                ],
+                "properties": {
+                  "reason": {
+                    "enum": [
+                      "completed",
+                      "stopped",
+                      "deadman",
+                      "estop",
+                      "error",
+                      "unbound"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "output_reverted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "required": [
+                  "line",
+                  "value",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event": {
+                "const": "deadman_tripped"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "detail": {
+                "required": [
+                  "silent_ms",
+                  "outputs_reverted",
+                  "jobs_stopped"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "bye": {
+      "required": [
+        "reason"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "reason": {
+          "enum": [
+            "shutdown",
+            "restart",
+            "device_mismatch",
+            "token_revoked",
+            "protocol_unsupported",
+            "server_drain"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "args_camera_capture": {
+      "type": "object",
+      "required": [
+        "camera"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "camera": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,15}$"
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 160,
+          "maximum": 4608
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 120,
+          "maximum": 3456
+        }
+      }
+    },
+    "args_log_start": {
+      "type": "object",
+      "required": [
+        "name",
+        "interval_ms",
+        "duration_ms",
+        "reads"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "interval_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3600000
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2592000000
+        },
+        "reads": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "bus",
+              "addr",
+              "len"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,31}$"
+              },
+              "bus": {
+                "$ref": "#/$defs/bus"
+              },
+              "addr": {
+                "$ref": "#/$defs/i2c_addr"
+              },
+              "reg": {
+                "$ref": "#/$defs/reg"
+              },
+              "len": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 256
+              },
+              "reg_width": {
+                "$ref": "#/$defs/reg_width"
+              }
+            }
+          }
+        },
+        "photo": {
+          "type": "object",
+          "required": [
+            "camera",
+            "interval_ms"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "camera": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]{0,15}$"
+            },
+            "interval_ms": {
+              "type": "integer",
+              "minimum": 10000,
+              "maximum": 86400000
+            },
+            "width": {
+              "type": "integer",
+              "minimum": 160,
+              "maximum": 4608
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 120,
+              "maximum": 3456
+            }
+          }
+        }
+      }
+    },
+    "args_log_stop": {
+      "type": "object",
+      "required": [
+        "log_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "log_id": {
+          "type": "string",
+          "maxLength": 32
+        }
+      }
+    },
+    "blob": {
+      "required": [
+        "blob_id",
+        "seq",
+        "last",
+        "content_type",
+        "data"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "blob_id": {
+          "type": "string",
+          "pattern": "^blob_[A-Za-z0-9]{8,40}$"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 511
+        },
+        "last": {
+          "type": "boolean"
+        },
+        "content_type": {
+          "enum": [
+            "image/jpeg",
+            "image/png"
+          ]
+        },
+        "total_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "data": {
+          "type": "string",
+          "maxLength": 60000,
+          "pattern": "^[A-Za-z0-9+/=]*$"
+        },
+        "meta": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "last": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sha256",
+              "total_bytes"
+            ]
+          }
+        }
+      ]
+    },
+    "ack": {
+      "required": [
+        "job_id",
+        "seq"
+      ],
+      "properties": {
+        "v": true,
+        "type": true,
+        "id": true,
+        "ts": true,
+        "re": true,
+        "job_id": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "args_display_draw": {
+      "type": "object",
+      "required": [
+        "bus",
+        "addr",
+        "items"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "bus": {
+          "$ref": "#/$defs/bus"
+        },
+        "addr": {
+          "$ref": "#/$defs/i2c_addr"
+        },
+        "clear": {
+          "type": "boolean",
+          "default": true,
+          "description": "false なら前回の画面に重ねて描く"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "maxLength": 32,
+                "description": "ASCII と °（℃ は °C として描く）。それ以外は ?"
+              },
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 127,
+                "default": 0
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 127,
+                "default": 0
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4,
+                "default": 1,
+                "description": "文字の倍率。1文字は 6×size × 8×size 画素"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

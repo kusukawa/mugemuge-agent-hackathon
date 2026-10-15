@@ -1,0 +1,103 @@
+# ハッカソン用：素の Raspberry Pi Zero 2 W ＋ Grove センサ
+# 置き場所: /etc/mugemuge/manifest.yaml（root 所有・0644。デーモンは読むだけ）
+# 書かれていないバス・アドレス・ピンはすべて拒否される。
+
+manifest_version: 1
+
+device:
+  id: pi-desk-01
+  name: 卓上むげむげ1号
+  board: raspberry-pi-zero-2-w
+  hat: none
+
+link:
+  gateway_url: wss://mugemuge-gateway-xxxxxxxx-an.a.run.app/v1/device
+  token_file: /etc/mugemuge/device.token
+
+approval:
+  scheme: ed25519
+  public_keys:
+    - kid: api-2026-10
+      key: z2wDYLxJeyBVs9gKahiOeEis3kEBAPTIqmPHI6mV4m8    # 例専用の鍵（tools/gen_examples.py）。本番では差し替える
+  max_ttl_s: 300
+
+safety:
+  deadman_ms: 10000
+  estop_clear: approval
+
+limits:
+  exec_per_s: 20
+  i2c_read_per_s: 200
+  i2c_write_per_s: 20
+  gpio_write_per_s: 5
+  display_per_s: 2
+  max_read_len: 32
+  max_write_len: 16
+  queue_depth: 8
+
+sample:
+  min_period_ms: 10
+  max_duration_ms: 600000      # 10分
+  max_reads_per_tick: 8
+  max_concurrent_jobs: 2
+
+i2c:
+  buses:
+    - bus: 1
+      label: grove-i2c
+      scan:
+        enabled: true
+        first: 0x08
+        last: 0x77
+        exclude: []
+      unknown:              # 何がつながっているか分からないアドレス
+        read: allow         # 同定のための読み出しは自動
+        write: approval     # 未同定の部品への書き込みは人の承認が必要
+        bind: approval      # 「この部品は INA226 として扱う」も人が確認する
+      bound:                # i2c.bind で同定を確定したアドレス
+        other_write: approval
+        max_write_allow_regs: 8
+        fingerprint_recheck_ms: 1000
+        # SHT30 は定期計測中にシリアル番号のコマンド（指紋）を受け付けないので、書き込み前の指紋の読み直しを
+        # しない（recheck: false）バインドを許す。承認カードに「書き込み前の指紋の確認をしない」と出る
+        allow_no_recheck: true
+        # 表示デバイス（SH1107）として登録したアドレスへの display.draw。allow にすると登録の承認のあとは自動で描ける
+        display: approval
+      addresses: []         # 固定ルールはなし（全部エージェントに同定させる）
+
+gpio:
+  chip: gpiochip0
+  lines:
+    - line: 17
+      label: relay-1        # Grove リレー（D16 ポートの片側）
+      direction: output
+      write: approval       # 能動側（ON）は承認必須。OFF（safe_value）は常に許可
+      safe_value: 0
+      max_on_ms: 2000       # 承認されても 2 秒で自動 OFF
+    - line: 27
+      label: button-1       # Grove ボタン
+      direction: input
+      read: allow
+      bias: pull_up
+
+camera:                     # 書かれていないカメラは使えない
+  devices:
+    - id: cam0
+      kind: usb             # csi なら rpicam-still、usb なら fswebcam
+      device: /dev/video0
+      label: 卓上カメラ
+      capture: approval     # 人や部屋が写りうるので、撮る前に人が確認する
+      max_width: 1280
+      max_height: 960
+
+log:                        # 長期の記録ジョブ（log.start）
+  min_interval_ms: 1000
+  max_duration_ms: 604800000      # 7日
+  min_photo_interval_ms: 60000    # 写真は1分に1枚まで
+  max_concurrent_logs: 2
+  spool_mb: 50                    # Pi に貯める未送信の記録の上限（写真は 80% で止め、100% で古いバッチから捨てる）
+  photo_max_px: 640               # 記録の写真の長辺の上限
+
+logging:
+  audit_path: /var/lib/mugemuge/audit.jsonl
+  audit_max_mb: 20

@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+# Pi 上で秘密鍵を作るスクリプトは置かない（CLAUDE.md の安全ルール）
+generate_keys.py

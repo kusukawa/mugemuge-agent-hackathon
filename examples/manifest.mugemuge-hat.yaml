@@ -1,0 +1,86 @@
+# 将来：むげむげ HAT Rev A を載せた Pi Zero 2 W
+# 0x08（PMCU）は固定ルールで保護し、エージェントがバインドで上書きできないようにする。
+# ID EEPROM（i2c-0, 0x50）、UART（GPIO14/15）、SWD_A（GPIO22/23）、SWD_B（GPIO24/25）は
+# ここに書かないので、エージェントからは一切触れない。
+
+manifest_version: 1
+
+device:
+  id: mugemuge-rev-a-001
+  name: むげむげ Rev A 試作1号
+  board: raspberry-pi-zero-2-w
+  hat: mugemuge-rev-a
+
+link:
+  gateway_url: wss://mugemuge-gateway-xxxxxxxx-an.a.run.app/v1/device
+  token_file: /etc/mugemuge/device.token
+
+approval:
+  scheme: ed25519
+  public_keys:
+    - kid: api-2026-10
+      key: z2wDYLxJeyBVs9gKahiOeEis3kEBAPTIqmPHI6mV4m8   # 例専用の鍵。本番では差し替える
+  max_ttl_s: 300
+
+safety:
+  deadman_ms: 10000
+  estop_clear: approval
+
+limits:
+  exec_per_s: 20
+  i2c_read_per_s: 200
+  i2c_write_per_s: 20
+  gpio_write_per_s: 5
+  max_read_len: 32
+  max_write_len: 16
+  queue_depth: 8
+
+sample:
+  min_period_ms: 10
+  max_duration_ms: 3600000     # 1時間
+  max_reads_per_tick: 8
+  max_concurrent_jobs: 2
+
+i2c:
+  buses:
+    - bus: 1
+      label: pi-bus
+      scan:
+        enabled: true
+        first: 0x08
+        last: 0x77
+        exclude: [0x08]       # PMCU はスキャンに出さない（固定ルールで別に扱う）
+      unknown:
+        read: allow
+        write: approval
+        bind: approval
+      bound:
+        other_write: approval
+        max_write_allow_regs: 8
+        fingerprint_recheck_ms: 1000
+      addresses:
+        - addr: 0x08
+          label: pmcu
+          part: RP2354A-PMCU
+          protected: true
+          read: allow           # 時刻・電池残量・充電状態の読み出しは自動
+          write: deny           # 既定は書き込み禁止
+          write_allow_regs: []  # 0x08 レジスタマップが決まったら、安全なものだけここに足す
+
+gpio:
+  chip: gpiochip0
+  lines:
+    - line: 5
+      label: pico-detect-n    # ユーザー Pico の挿抜検出（Low=装着）
+      direction: input
+      read: allow
+      bias: pull_up
+    - line: 16
+      label: mode-sw          # AP 設定モードスイッチ
+      direction: input
+      read: allow
+      bias: pull_up
+
+logging:
+  audit_path: /var/lib/mugemuge/audit.jsonl
+  audit_max_mb: 20

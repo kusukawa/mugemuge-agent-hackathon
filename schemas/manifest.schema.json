@@ -1,0 +1,701 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mugemuge.dev/schemas/manifest.v1.json",
+  "title": "mugemuge-agentd capability manifest v1",
+  "description": "Pi上のデーモンが持つ能力マニフェスト。書かれていないバス・アドレス・ピンはすべて拒否される。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "device",
+    "link",
+    "approval",
+    "safety",
+    "limits",
+    "i2c",
+    "gpio"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": 1
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "board"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug",
+          "description": "デバイスID。ペアリング時のIDと一致させる"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "board": {
+          "enum": [
+            "raspberry-pi-zero-2-w",
+            "raspberry-pi-4",
+            "raspberry-pi-5",
+            "virtual"
+          ]
+        },
+        "hat": {
+          "enum": [
+            "none",
+            "mugemuge-rev-a"
+          ],
+          "default": "none"
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gateway_url",
+        "token_file"
+      ],
+      "properties": {
+        "gateway_url": {
+          "type": "string",
+          "pattern": "^wss://"
+        },
+        "token_file": {
+          "type": "string",
+          "pattern": "^/"
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "public_keys"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "ed25519"
+        },
+        "public_keys": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kid",
+              "key"
+            ],
+            "properties": {
+              "kid": {
+                "$ref": "#/$defs/slug"
+              },
+              "key": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{43}=?$",
+                "description": "Ed25519公開鍵32バイトのbase64url"
+              }
+            }
+          }
+        },
+        "max_ttl_s": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 900,
+          "default": 300
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deadman_ms"
+      ],
+      "properties": {
+        "deadman_ms": {
+          "type": "integer",
+          "minimum": 2000,
+          "maximum": 60000,
+          "default": 10000
+        },
+        "estop_clear": {
+          "enum": [
+            "approval",
+            "allow"
+          ],
+          "default": "approval"
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exec_per_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 20
+        },
+        "i2c_read_per_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2000,
+          "default": 200
+        },
+        "i2c_write_per_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 20
+        },
+        "gpio_write_per_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 5
+        },
+        "display_per_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 2,
+          "description": "display.draw（1回で画面1枚）の毎秒の上限"
+        },
+        "max_read_len": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 256,
+          "default": 32
+        },
+        "max_write_len": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64,
+          "default": 16
+        },
+        "queue_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64,
+          "default": 8
+        }
+      }
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min_period_ms": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 60000,
+          "default": 10
+        },
+        "max_duration_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 86400000,
+          "default": 600000
+        },
+        "max_reads_per_tick": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32,
+          "default": 8
+        },
+        "max_concurrent_jobs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "default": 2
+        }
+      }
+    },
+    "i2c": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "buses"
+      ],
+      "properties": {
+        "buses": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/i2c_bus"
+          }
+        }
+      }
+    },
+    "gpio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chip",
+        "lines"
+      ],
+      "properties": {
+        "chip": {
+          "type": "string",
+          "pattern": "^gpiochip[0-9]+$"
+        },
+        "lines": {
+          "type": "array",
+          "maxItems": 40,
+          "items": {
+            "$ref": "#/$defs/gpio_line"
+          }
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "audit_path": {
+          "type": "string",
+          "pattern": "^/",
+          "default": "/var/lib/mugemuge/audit.jsonl"
+        },
+        "audit_max_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "default": 20
+        }
+      }
+    },
+    "camera": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "使えるカメラ。書いていなければ camera.capture は拒否（既定は拒否）",
+      "properties": {
+        "devices": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "kind",
+              "capture"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]{0,15}$"
+              },
+              "kind": {
+                "enum": [
+                  "csi",
+                  "usb",
+                  "fake"
+                ]
+              },
+              "device": {
+                "type": "string",
+                "pattern": "^/dev/video[0-9]{1,2}$",
+                "description": "USB カメラのデバイス（kind=usb のとき）"
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "capture": {
+                "enum": [
+                  "allow",
+                  "approval",
+                  "deny"
+                ],
+                "description": "撮影の判定。写真は人や部屋が写りうるので approval を勧める"
+              },
+              "max_width": {
+                "type": "integer",
+                "minimum": 160,
+                "maximum": 4608,
+                "default": 1280
+              },
+              "max_height": {
+                "type": "integer",
+                "minimum": 120,
+                "maximum": 3456,
+                "default": 960
+              },
+              "min_interval_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3600000,
+                "default": 2000,
+                "description": "camera.capture の最短の間隔。短ければ rate_limited（retry_after_ms 付き）。記録ジョブの写真の間隔もこれ以上"
+              },
+              "max_per_hour": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3600,
+                "default": 120,
+                "description": "camera.capture の1時間あたりの上限（直近1時間の枚数）。超えたら rate_limited"
+              }
+            }
+          }
+        }
+      }
+    },
+    "log": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "長期の記録ジョブ（log.start）の上限",
+      "properties": {
+        "min_interval_ms": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3600000,
+          "default": 1000
+        },
+        "max_duration_ms": {
+          "type": "integer",
+          "minimum": 60000,
+          "maximum": 2592000000,
+          "default": 604800000
+        },
+        "min_photo_interval_ms": {
+          "type": "integer",
+          "minimum": 10000,
+          "maximum": 86400000,
+          "default": 60000
+        },
+        "max_concurrent_logs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "default": 2
+        },
+        "spool_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2048,
+          "default": 512,
+          "description": "spool（Pi に貯める未送信の記録）の上限。写真の総量が 80% を超えたら写真を止め（spool_photos_paused）、全体が 100% を超えたら未確認の最も古いバッチから捨てる（spool_rows_dropped）"
+        },
+        "photo_max_px": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096,
+          "default": 640,
+          "description": "記録ジョブの写真の長辺の上限（px）。log.start の photo の width・height はこれに収まるよう縮める"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,47}$"
+    },
+    "level": {
+      "enum": [
+        "allow",
+        "approval",
+        "deny"
+      ]
+    },
+    "u8": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "reg": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535
+    },
+    "i2c_addr": {
+      "type": "integer",
+      "minimum": 8,
+      "maximum": 119,
+      "description": "7ビットアドレス。予約範囲 0x00-0x07, 0x78-0x7F は書けない"
+    },
+    "hex": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{2})+$"
+    },
+    "fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reg",
+        "len",
+        "hex"
+      ],
+      "properties": {
+        "reg": {
+          "$ref": "#/$defs/reg"
+        },
+        "len": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "hex": {
+          "$ref": "#/$defs/hex"
+        }
+      }
+    },
+    "i2c_bus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bus",
+        "unknown"
+      ],
+      "properties": {
+        "bus": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "scan": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "first": {
+              "$ref": "#/$defs/i2c_addr",
+              "default": 8
+            },
+            "last": {
+              "$ref": "#/$defs/i2c_addr",
+              "default": 119
+            },
+            "exclude": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/i2c_addr"
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "unknown": {
+          "description": "addresses[] にもバインドにもないアドレスの扱い",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "read",
+            "write",
+            "bind"
+          ],
+          "properties": {
+            "read": {
+              "enum": [
+                "allow",
+                "deny"
+              ]
+            },
+            "write": {
+              "$ref": "#/$defs/level"
+            },
+            "bind": {
+              "$ref": "#/$defs/level"
+            }
+          }
+        },
+        "bound": {
+          "description": "i2c.bind で紐づけたアドレスの扱い",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "other_write": {
+              "$ref": "#/$defs/level",
+              "default": "approval"
+            },
+            "max_write_allow_regs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 32,
+              "default": 8
+            },
+            "fingerprint_recheck_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 60000,
+              "default": 1000
+            },
+            "allow_no_recheck": {
+              "type": "boolean",
+              "default": false,
+              "description": "recheck: false（書き込み前に指紋を読み直さない）のバインドを許すか。false なら、そのバインドは policy_denied（i2c.no_recheck_not_allowed）。定期計測中に指紋のコマンドを受け付けない部品（SHT3x など）を使うときだけ true にする"
+            },
+            "display": {
+              "$ref": "#/$defs/level",
+              "default": "approval",
+              "description": "表示デバイス（SH1107 など）としてバインドしたアドレスへの display.draw。allow なら登録の承認のあとは自動で描ける"
+            }
+          }
+        },
+        "addresses": {
+          "description": "所有者が固定で決めるアドレスごとのルール",
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "addr",
+              "label",
+              "read",
+              "write"
+            ],
+            "properties": {
+              "addr": {
+                "$ref": "#/$defs/i2c_addr"
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "part": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "protected": {
+                "type": "boolean",
+                "default": true,
+                "description": "true なら i2c.bind で上書きできない"
+              },
+              "fingerprint": {
+                "$ref": "#/$defs/fingerprint"
+              },
+              "read": {
+                "$ref": "#/$defs/level"
+              },
+              "write": {
+                "$ref": "#/$defs/level"
+              },
+              "write_allow_regs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/reg"
+                },
+                "uniqueItems": true,
+                "maxItems": 32
+              }
+            }
+          }
+        }
+      }
+    },
+    "gpio_line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "line",
+        "label",
+        "direction"
+      ],
+      "properties": {
+        "line": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 53
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ]
+        },
+        "read": {
+          "enum": [
+            "allow",
+            "deny"
+          ],
+          "default": "allow"
+        },
+        "bias": {
+          "enum": [
+            "none",
+            "pull_up",
+            "pull_down"
+          ],
+          "default": "none"
+        },
+        "write": {
+          "$ref": "#/$defs/level"
+        },
+        "safe_value": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "max_on_ms": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 3600000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "direction": {
+                "const": "output"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "write",
+              "safe_value",
+              "max_on_ms"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "write"
+                  ]
+                },
+                {
+                  "required": [
+                    "safe_value"
+                  ]
+                },
+                {
+                  "required": [
+                    "max_on_ms"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

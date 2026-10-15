@@ -1,0 +1,13 @@
+# gcloud run deploy --source で Cloud Build に送らないもの
+.git/
+.gitignore
+.venv/
+**/__pycache__/
+.pytest_cache/
+*.egg-info/
+tests/
+tools/
+examples/
+deploy/cloud/
+docs/
+generate_keys.py

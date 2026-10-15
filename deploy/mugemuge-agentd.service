@@ -1,0 +1,45 @@
+# むげむげ Pi 側デーモン
+# 置き場所: /etc/systemd/system/mugemuge-agentd.service（適用手順は README の「本番での動かし方」）
+# ログ: journald（journalctl -u mugemuge-agentd）。監査ログは /var/lib/mugemuge/audit.jsonl（マニフェストの logging.audit_path）
+
+[Unit]
+Description=mugemuge-agentd (device daemon for mugemuge)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=agent
+Group=agent
+SupplementaryGroups=i2c gpio video
+WorkingDirectory=/opt/mugemuge-agentd
+Environment=HOME=/var/lib/mugemuge
+Environment=PYTHONUNBUFFERED=1
+Environment=MUGEMUGE_SCHEMA_DIR=/opt/mugemuge-agentd/schemas
+ExecStart=/opt/mugemuge-agentd/.venv/bin/python -m mugemuge_agentd run --manifest /etc/mugemuge/manifest.yaml
+# デーモンが落ちても・止められても、最後に全出力を safe_value に戻す（PROTOCOL.md 8.3節）
+ExecStopPost=/opt/mugemuge-agentd/.venv/bin/python -m mugemuge_agentd safe-outputs --manifest /etc/mugemuge/manifest.yaml
+KillSignal=SIGTERM
+TimeoutStopSec=15
+Restart=on-failure
+RestartSec=5
+
+# /var/lib/mugemuge を agent 所有で作る（監査ログ）
+StateDirectory=mugemuge
+StateDirectoryMode=0750
+StandardOutput=journal
+StandardError=journal
+
+# 締め付け（I2C・GPIO はグループ権限で開く）
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/mugemuge
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+
+[Install]
+WantedBy=multi-user.target
